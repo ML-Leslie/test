@@ -4,6 +4,10 @@
 	import { notes } from '@sudoku/stores/notes';
 	import { candidates } from '@sudoku/stores/candidates';
 
+	import { getOnePossibleNumber } from '@sudoku/solver';
+	import { SUDOKU_SIZE } from '@sudoku/constants';
+	import { branchPoints, history } from '@sudoku/stores/branchPoints';
+	import { possibleNumbers } from '@sudoku/stores/possibleNumbers';
 	// TODO: Improve keyboardDisabled
 	import { keyboardDisabled } from '@sudoku/stores/keyboard';
 
@@ -20,8 +24,17 @@
 				if ($candidates.hasOwnProperty($cursor.x + ',' + $cursor.y)) {
 					candidates.clear($cursor);
 				}
+				if ($possibleNumbers.hasOwnProperty($cursor.x + ',' + $cursor.y)) {
+					possibleNumbers.clear($cursor);
+				}
+
+
+
 
 				userGrid.set($cursor, num);
+
+
+
 			}
 		}
 	}
