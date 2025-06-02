@@ -12,6 +12,7 @@
 	import { message } from '@sudoku/stores/message';
 	import { GRID_COORDS, SUDOKU_SIZE } from '@sudoku/constants';
 	import { branchPoints, history, rightNumber, wrongNumber } from '@sudoku/stores/branchPoints';
+	import { record, canUndo, canRedo } from '@sudoku/stores/record'
 
 	$: hintsAvailable = $hints > 0;
 
@@ -26,10 +27,10 @@
 	}
 
 	function handleLearn() {
-		const [{idx, value}, msg] = possibleNumberSolver($userGrid);
+		const [{idx, value}, msgs] = possibleNumberSolver($userGrid);
 		const [row, col] = GRID_COORDS[idx];
-		$message = msg;
 		userGrid.set({ y: row, x: col } , value);
+		$message = msgs.join(" -> ");
 	}
 
 	$: trigBackTracking = $branchPoints.length > 0 && $invalidCells.length > 0;
@@ -40,20 +41,35 @@
 		wrongNumber.set(wrongNumberValue);
 		cursor.set(wrongGrid.x, wrongGrid.y);
 		let toremove = $history.slice(junction, $history.length);
+		let torecord = [];
 		toremove.forEach(pos => {
+			torecord.push({row:pos.y, col:pos.x, oldValue:$userGrid[pos.y][pos.x], newValue: 0})
 			userGrid.set(pos, 0);
 			history.remove(pos);
 		});
+		record.do(torecord);
 		let rightNumberValue = getOnePossibleNumber($userGrid, $cursor.y * SUDOKU_SIZE + $cursor.x ).find(item => item !== wrongNumberValue);
 		rightNumber.set(rightNumberValue);
 		possibleNumberSwitch.on();
 		$message = "BackTracking!\nYour wrong number is " + wrongNumberValue +" and the another possible number is " + rightNumberValue;
 	}
 
+	function handleUndo() {
+		for (const {row, col, oldValue, newValue} of record.undo()) {
+			userGrid.set({y:row, x:col}, oldValue);
+		}
+		$message = "Undo!!!"
+	}
+
+	function handleRedo() {
+		for (const {row, col, oldValue, newValue} of record.redo()) {
+			userGrid.set({y:row, x:col}, newValue);
+		}
+		$message = "Redo!!!"
+	}
+
 	let isTest = false;
 	let testFuncName = '';
-
-	
 	function handleTest(e) {
         if (e.key === 'Enter') {
             isTest = false;
@@ -104,13 +120,13 @@
 		</button>
 	{/if}
 
-	<button class="btn btn-round" disabled={$gamePaused} title="Undo">
+	<button class="btn btn-round" disabled={$gamePaused || !$canUndo} on:click={handleUndo} title="Undo">
 		<svg class="icon-outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
 		</svg>
 	</button>
 
-	<button class="btn btn-round" disabled={$gamePaused} title="Redo">
+	<button class="btn btn-round" disabled={$gamePaused || !$canRedo} on:click={handleRedo} title="Redo">
 		<svg class="icon-outline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a8 8 90 00-8 8v2M21 10l-6 6m6-6l-6-6" />
 		</svg>

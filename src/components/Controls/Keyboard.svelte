@@ -8,11 +8,13 @@
 	import { SUDOKU_SIZE } from '@sudoku/constants';
 	import { branchPoints, history } from '@sudoku/stores/branchPoints';
 	import { possibleNumbers } from '@sudoku/stores/possibleNumbers';
+	import { record } from '@sudoku/stores/record'
 	// TODO: Improve keyboardDisabled
 	import { keyboardDisabled } from '@sudoku/stores/keyboard';
 
 	function handleKeyButton(num) {
 		if (!$keyboardDisabled) {
+			record.do([{row:$cursor.y, col:$cursor.x, oldValue:$userGrid[$cursor.y][$cursor.x], newValue:num},])
 			if ($notes) {
 				if (num === 0) {
 					candidates.clear($cursor);
@@ -27,13 +29,7 @@
 				if ($possibleNumbers.hasOwnProperty($cursor.x + ',' + $cursor.y)) {
 					possibleNumbers.clear($cursor);
 				}
-
-
-
-
 				userGrid.set($cursor, num);
-
-
 
 			}
 		}
