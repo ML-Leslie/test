@@ -1,0 +1,26 @@
+name: "CodeQL 分析"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze:
+    name: 分析
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+
+    steps:
+    - name: 签出代码库
+      uses: actions/checkout@v3
+
+    - name: 初始化 CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: javascript
+
+    - name: 执行 CodeQL 分析
+      uses: github/codeql-action/analyze@v2
